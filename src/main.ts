@@ -9,6 +9,7 @@ interface orderData {
 }
 
 const wss = new WebSocketServer({ port: 3000 });
+let clients: Set<WebSocket> = new Set();
 
 wss.on("connection", (ws: WebSocket) => {
 	console.log("A new client connected!");
@@ -27,9 +28,17 @@ wss.on("connection", (ws: WebSocket) => {
 });
 
 
+const broadcast = (data:Object) => {
+  const json = JSON.stringify(data);
+  for (const client of clients) {
+    if (client.readyState === client.OPEN) {
+      client.send(json);
+    }
+  }
+};
 
 // function sendOrder(jsonData) {
 //  
 // }
 
-// ws.send(JSON.stringify({ x:  , y: , theta: }));
+// const broadcast({x: , y: , theta: });
