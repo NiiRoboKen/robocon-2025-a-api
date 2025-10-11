@@ -1,9 +1,10 @@
 import { WebSocketServer , WebSocket} from "ws";
-import { usb, Device } from "usb";
+import { usb, Device, findByIds } from "usb";
 import { SerialPort } from "serialport";
 
 import { device_path } from "./utils.ts";
 import { SbtpParser } from "./sbtp.ts";
+import { Nrcc2025Parser } from "./nrcc-2025.ts"
 
 interface orderData {
 	positionX: number;
@@ -23,6 +24,32 @@ const SERIAL_BAUDRATE = 115200;
 
 let primary_ch340: Device | undefined;
 let serial: SerialPort | undefined;
+
+async function init() {
+	const device = findByIds(CH340_VID, CH340_PID);
+	if (device) {
+		const ch340_path = await device_path(
+			CH340_VID.toString(16),
+			CH340_PID.toString(16),
+		);
+
+		if (!ch340_path) {
+			return;
+		}
+
+		primary_ch340 = device;
+		console.log(`CH340 connected. path=${ch340_path}`);
+
+		serial = new SerialPort({ path: ch340_path, baudRate: SERIAL_BAUDRATE });
+		const parser = serial.pipe(new SbtpParser({})).pipe(new Nrcc2025Parser({}));
+		parser.on("data", (data) => {
+			console.log(data);
+		});
+		console.log(`serial port open. baud=${SERIAL_BAUDRATE}`);
+	}
+}
+
+init()
 
 usb.on("attach", async (device) => {
 	// CH340以外
@@ -49,8 +76,8 @@ usb.on("attach", async (device) => {
 	console.log(`CH340 connected. path=${ch340_path}`);
 
 	serial = new SerialPort({ path: ch340_path, baudRate: SERIAL_BAUDRATE });
-	const parser = serial.pipe(new SbtpParser({}));
-	parser.on("data", (data: Buffer) => {
+	const parser = serial.pipe(new SbtpParser({})).pipe(new Nrcc2025Parser({}));
+	parser.on("data", (data) => {
 		console.log(data);
 	});
 	console.log(`serial port open. baud=${SERIAL_BAUDRATE}`);
