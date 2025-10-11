@@ -1,7 +1,7 @@
 import { Transform } from "node:stream";
 import type { TransformCallback, TransformOptions } from "node:stream";
 
-import { crc8 } from "./utils";
+import { crc8 } from "./utils.ts";
 
 const SOF_BYTE = 0x55;
 const ESCAPE_BYTE = 0x5A;
