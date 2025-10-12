@@ -3,8 +3,8 @@ import { usb, Device, findByIds } from "usb";
 import { SerialPort } from "serialport";
 
 import { device_path } from "./utils.ts";
-import { SbtpParser } from "./sbtp.ts";
-import { parse_nrcc2025 } from "./nrcc-2025.ts"
+import { build_sbtp, SbtpParser } from "./sbtp.ts";
+import { build_nrcc2025, Commands, parse_nrcc2025 } from "./nrcc-2025.ts"
 
 interface orderData {
 	positionX: number;
@@ -124,8 +124,16 @@ const broadcast = (data:Object) => {
   }
 };
 
-// function sendOrder(jsonData) {
-//  
-// }
+function sendOrder(jsonData: Commands) {
+	const payload = build_nrcc2025(jsonData);
+	if (!payload) {
+		return;
+	}
+	const frame = build_sbtp(payload);
+	if (!serial) {
+		return;
+	}
+	serial.write(frame);
+}
 
 // const broadcast({x: , y: , theta: });
