@@ -4,7 +4,8 @@ import { SerialPort } from "serialport";
 
 import { device_path } from "./utils.ts";
 import { build_sbtp, SbtpParser } from "./sbtp.ts";
-import { build_nrcc2025, Commands, parse_nrcc2025 } from "./nrcc-2025.ts"
+import { build_nrcc2025, parse_nrcc2025 } from "./nrcc-2025.ts";
+import type { Commands } from "./nrcc-2025.ts";
 
 interface orderData {
 	positionX: number;
