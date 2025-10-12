@@ -93,3 +93,20 @@ export class SbtpParser extends Transform {
   payload: Buffer;
 }
 
+export function build_sbtp(buffer: Buffer) {
+  const sof = Buffer.from(new Uint8Array([SOF_BYTE]).buffer);
+  const length = Buffer.from(new Uint8Array([buffer.length]).buffer);
+
+  let payload = Buffer.alloc(0);
+  for (let byte of buffer) {
+    if (byte === SOF_BYTE || byte === EOF_BYTE || byte === ESCAPE_BYTE) {
+      payload = Buffer.concat([payload, Buffer.from(new Uint8Array([byte ^ XOR_BYTE]))]);
+    } else {
+      payload = Buffer.concat([payload, Buffer.from(new Uint8Array([byte]))]);
+    }
+  }
+
+  const crc = Buffer.from(new Uint8Array([crc8(buffer)]).buffer);
+  const eof = Buffer.from(new Uint8Array([EOF_BYTE]).buffer);
+  return Buffer.concat([sof, length, payload, crc, eof]);
+}
