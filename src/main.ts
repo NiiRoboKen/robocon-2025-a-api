@@ -79,7 +79,8 @@ usb.on("attach", async (device) => {
 	serial = new SerialPort({ path: ch340_path, baudRate: SERIAL_BAUDRATE });
 	const parser = serial.pipe(new SbtpParser({}));
 	parser.on("data", (data) => {
-		const cmd = parser_nrc
+		const cmd = parse_nrcc2025(data);
+		console.log(cmd);
 	});
 	console.log(`serial port open. baud=${SERIAL_BAUDRATE}`);
 });
