@@ -20,7 +20,7 @@ export type CurrentLocation = {
 };
 
 
-export function pasrse_nrcc2025(chunk: Buffer): Commands | undefined {
+export function parse_nrcc2025(chunk: Buffer): Commands | undefined {
   if (chunk.length === 0) {
     return undefined;
   }
