@@ -1,7 +1,7 @@
 import { Transform } from "node:stream";
 import type { TransformOptions, TransformCallback } from "node:stream";
 
-export type Commands = ReceiveSuccess | ReceiveFailed | CurrentLocation;
+export type Commands = ReceiveSuccess | ReceiveFailed | Pong | CurrentLocation;
 
 export type ReceiveSuccess = {
   command: "receive_success";
@@ -10,6 +10,10 @@ export type ReceiveSuccess = {
 export type ReceiveFailed = {
   command: "receive_failed";
   error_code: number;
+};
+
+export type Pong = {
+  command: "pong";
 };
 
 export type CurrentLocation = {
@@ -32,6 +36,8 @@ export function parse_nrcc2025(chunk: Buffer): Commands | undefined {
         return undefined;
       }
       return {command: "receive_failed", error_code: chunk.at(1)! };
+    case 0x03:
+      return {command: "pong"};
     case 0x20:
       if (chunk.length !== 13) {
         return undefined;
