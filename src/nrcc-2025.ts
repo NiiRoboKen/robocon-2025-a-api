@@ -19,39 +19,29 @@ export type CurrentLocation = {
   degree: number;
 };
 
-export interface Nrcc2025Options extends TransformOptions {}
 
-export class Nrcc2025Parser extends Transform {
-  constructor({ ...options }: Nrcc2025Options) {
-    super(options);
+export function pasrse_nrcc2025(chunk: Buffer): Commands | undefined {
+  if (chunk.length === 0) {
+    return undefined;
   }
-  _transform(chunk: Buffer, encoding: BufferEncoding, callback: TransformCallback): void {
-    if (chunk.length === 0) {
-      callback();
-    }
-    switch (chunk.at(0)) {
-      case 0x00:
-        this.push({command: "receive_success"} as Commands);
-        break;
-      case 0x02:
-        if (chunk.length !== 2) {
-          callback();
-        }
-        this.push({command: "receive_failed", error_code: chunk.at(1)} as Commands);
-        break;
-      case 0x20:
-        if (chunk.length !== 13) {
-          callback();
-        }
-        this.push({
-          command: "current_location",
-          x: chunk.readInt32BE(1),
-          y: chunk.readInt32BE(5),
-          degree: chunk.readInt32BE(9) / 100
-          } as Commands
-        );
-        break;
-    }
-    callback();
+  switch (chunk.at(0)) {
+    case 0x00:
+      return {command: "receive_success"};
+    case 0x02:
+      if (chunk.length !== 2) {
+        return undefined;
+      }
+      return {command: "receive_failed", error_code: chunk.at(1)! };
+    case 0x20:
+      if (chunk.length !== 13) {
+        return undefined;
+      }
+      return {
+        command: "current_location",
+        x: chunk.readInt32BE(1),
+        y: chunk.readInt32BE(5),
+        degree: chunk.readInt32BE(9) / 100
+      };
   }
+  return undefined;
 }

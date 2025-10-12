@@ -4,7 +4,7 @@ import { SerialPort } from "serialport";
 
 import { device_path } from "./utils.ts";
 import { SbtpParser } from "./sbtp.ts";
-import { Nrcc2025Parser } from "./nrcc-2025.ts"
+import { pasrse_nrcc2025 } from "./nrcc-2025.ts"
 
 interface orderData {
 	positionX: number;
@@ -41,9 +41,10 @@ async function init() {
 		console.log(`CH340 connected. path=${ch340_path}`);
 
 		serial = new SerialPort({ path: ch340_path, baudRate: SERIAL_BAUDRATE });
-		const parser = serial.pipe(new SbtpParser({})).pipe(new Nrcc2025Parser({}));
+		const parser = serial.pipe(new SbtpParser({}));
 		parser.on("data", (data) => {
-			console.log(data);
+			const cmd = pasrse_nrcc2025(data);
+			console.log(cmd);
 		});
 		console.log(`serial port open. baud=${SERIAL_BAUDRATE}`);
 	}
