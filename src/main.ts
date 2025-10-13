@@ -78,9 +78,9 @@ usb.on("attach", async (device) => {
 		console.log(cmd);
 	});
 	console.log(`serial port open. baud=${SERIAL_BAUDRATE}`);
-	setTimeout(() => {
-		sendOrder({ command: "ping" });
-	}, 1000);
+	// setInterval(() => {
+	// 	sendOrder({ command: "ping" });
+	// }, 1000);
 });
 
 usb.on("detach", (device) => {
@@ -135,7 +135,7 @@ function sendOrder(data: Commands) {
 	serial.write(frame);
 }
 
-// setTimeout(() => {
-// 	sendOrder({command: "ping"});
-// }, 1000);
+setInterval(() => {
+	sendOrder({command: "ping"});
+}, 1000);
 // broadcast({x: , y: , theta: });
