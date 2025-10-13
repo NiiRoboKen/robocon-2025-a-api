@@ -1,4 +1,4 @@
-import { WebSocketServer , WebSocket} from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import { usb, Device, findByIds } from "usb";
 import { SerialPort } from "serialport";
 
@@ -7,17 +7,8 @@ import { build_sbtp, SbtpParser } from "./sbtp.ts";
 import { build_nrcc2025, parse_nrcc2025 } from "./nrcc-2025.ts";
 import type { Commands } from "./nrcc-2025.ts";
 
-interface orderData {
-	positionX: number;
-	positionY: number;
-	theta: number;
-	armX: number;
-	armY: number;
-}
-
 const wss = new WebSocketServer({ port: 3000 });
 let clients: Set<WebSocket> = new Set();
-
 
 const CH340_VID = 0x1a86;
 const CH340_PID = 0x7523;
@@ -51,11 +42,14 @@ async function init() {
 	}
 }
 
-init()
+init();
 
 usb.on("attach", async (device) => {
 	// CH340以外
-	if (device.deviceDescriptor.idVendor !== CH340_VID || device.deviceDescriptor.idProduct !== CH340_PID) {
+	if (
+		device.deviceDescriptor.idVendor !== CH340_VID ||
+		device.deviceDescriptor.idProduct !== CH340_PID
+	) {
 		return;
 	}
 
@@ -86,7 +80,6 @@ usb.on("attach", async (device) => {
 	console.log(`serial port open. baud=${SERIAL_BAUDRATE}`);
 });
 
-
 usb.on("detach", (device) => {
 	if (primary_ch340 !== device) {
 		return;
@@ -96,45 +89,47 @@ usb.on("detach", (device) => {
 	console.log("CH340 disconnected.");
 });
 
-
 wss.on("connection", (ws: WebSocket) => {
 	console.log("A new client connected!");
 
 	ws.on("error", console.error);
 
-	ws.on("message", (data: Buffer) =>{
-		const jsonData = JSON.parse(data.toString()) as orderData;
-		console.log("received:", jsonData);
+	ws.on("message", (jsonData: Buffer) => {
+		const orderData = JSON.parse(jsonData.toString()) as Commands;
+		console.log("received:", orderData);
 
 		if (!primary_ch340) {
 			console.log("Cant send. because CH340 is not found.");
+			// return; 
+			// 動作チェックのためコメントアウト
 		}
+		sendOrder(orderData);
 	});
 	ws.on("close", () => {
 		console.log("Client disconnected");
 	});
 });
 
-
-const broadcast = (data:Object) => {
-  const json = JSON.stringify(data);
-  for (const client of clients) {
-    if (client.readyState === client.OPEN) {
-      client.send(json);
-    }
-  }
+const broadcast = (data: Commands) => {
+	const jsonData = JSON.stringify(data);
+	for (const client of clients) {
+		if (client.readyState === client.OPEN) {
+			client.send(jsonData);
+		}
+	}
 };
 
-function sendOrder(jsonData: Commands) {
-	const payload = build_nrcc2025(jsonData);
+function sendOrder(data: Commands) {
+	const payload = build_nrcc2025(data);
 	if (!payload) {
 		return;
 	}
 	const frame = build_sbtp(payload);
+	console.log(frame);
 	if (!serial) {
 		return;
 	}
 	serial.write(frame);
-}
+};
 
-// const broadcast({x: , y: , theta: });
+// broadcast({x: , y: , theta: });
