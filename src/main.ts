@@ -9,6 +9,7 @@ import type { Commands } from "./nrcc-2025.ts";
 
 const wss = new WebSocketServer({ port: 3000 });
 let clients: Set<WebSocket> = new Set();
+let timeCount = 0;
 
 const CH340_VID = 0x1a86;
 const CH340_PID = 0x7523;
@@ -37,6 +38,12 @@ async function init() {
 		parser.on("data", (data) => {
 			const cmd = parse_nrcc2025(data);
 			console.log(cmd);
+			if (!cmd) {
+				return;
+			} else if (cmd.command == "pong") {
+				timeCount = 0;
+			}
+			broadcast(cmd);
 		});
 		console.log(`serial port open. baud=${SERIAL_BAUDRATE}`);
 	}
@@ -78,9 +85,6 @@ usb.on("attach", async (device) => {
 		console.log(cmd);
 	});
 	console.log(`serial port open. baud=${SERIAL_BAUDRATE}`);
-	// setInterval(() => {
-	// 	sendOrder({ command: "ping" });
-	// }, 1000);
 });
 
 usb.on("detach", (device) => {
@@ -113,7 +117,7 @@ wss.on("connection", (ws: WebSocket) => {
 	});
 });
 
-const broadcast = (data: Commands) => {
+const broadcast = (data: object) => {
 	const jsonData = JSON.stringify(data);
 	for (const client of clients) {
 		if (client.readyState === client.OPEN) {
@@ -136,6 +140,15 @@ function sendOrder(data: Commands) {
 }
 
 setInterval(() => {
-	sendOrder({command: "ping"});
+	sendOrder({ command: "ping" });
+	if (timeCount > 2) {
+		broadcast({ command: "receive_failed" });
+	} else {
+		broadcast({
+			command: "receive_success",
+		});
+	}
+	timeCount++;
 }, 1000);
+
 // broadcast({x: , y: , theta: });
