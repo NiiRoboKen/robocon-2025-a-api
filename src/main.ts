@@ -78,6 +78,9 @@ usb.on("attach", async (device) => {
 		console.log(cmd);
 	});
 	console.log(`serial port open. baud=${SERIAL_BAUDRATE}`);
+	setTimeout(() => {
+		sendOrder({ command: "ping" });
+	}, 1000);
 });
 
 usb.on("detach", (device) => {
@@ -100,7 +103,7 @@ wss.on("connection", (ws: WebSocket) => {
 
 		if (!primary_ch340) {
 			console.log("Cant send. because CH340 is not found.");
-			// return; 
+			// return;
 			// 動作チェックのためコメントアウト
 		}
 		sendOrder(orderData);
@@ -130,9 +133,9 @@ function sendOrder(data: Commands) {
 		return;
 	}
 	serial.write(frame);
-};
+}
 
-setTimeout(() => {
-	sendOrder({command: "ping"});
-}, 1000);
+// setTimeout(() => {
+// 	sendOrder({command: "ping"});
+// }, 1000);
 // broadcast({x: , y: , theta: });
