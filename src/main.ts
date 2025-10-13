@@ -132,4 +132,7 @@ function sendOrder(data: Commands) {
 	serial.write(frame);
 };
 
+setTimeout(() => {
+	sendOrder({command: "ping"});
+}, 1000);
 // broadcast({x: , y: , theta: });
