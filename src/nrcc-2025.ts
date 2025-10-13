@@ -136,18 +136,23 @@ export function build_nrcc2025(cmd: Commands): Buffer | undefined {
       switch (cmd.box) {
         case "A": {
           box_number = Buffer.from(new Uint8Array([0]).buffer);
+          break;
         }
         case "B": {
           box_number = Buffer.from(new Uint8Array([1]).buffer);
+          break;
         }
         case "C": {
           box_number = Buffer.from(new Uint8Array([2]).buffer);
+          break;
         }
         case "D": {
           box_number = Buffer.from(new Uint8Array([3]).buffer);
+          break;
         }
         case "E": {
           box_number = Buffer.from(new Uint8Array([4]).buffer);
+          break;
         }
       }
       return Buffer.concat([command_byte, box_number]);
@@ -158,18 +163,23 @@ export function build_nrcc2025(cmd: Commands): Buffer | undefined {
       switch (cmd.box) {
         case "A": {
           box_number = Buffer.from(new Uint8Array([0]).buffer);
+          break;
         }
         case "B": {
           box_number = Buffer.from(new Uint8Array([1]).buffer);
+          break;
         }
         case "C": {
           box_number = Buffer.from(new Uint8Array([2]).buffer);
+          break;
         }
         case "D": {
           box_number = Buffer.from(new Uint8Array([3]).buffer);
+          break;
         }
         case "E": {
           box_number = Buffer.from(new Uint8Array([4]).buffer);
+          break;
         }
       }
       return Buffer.concat([command_byte, box_number]);
