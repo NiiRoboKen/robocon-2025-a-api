@@ -15,9 +15,17 @@ export type Commands =
   | RightArmFoldUpper
   | LeftArmFoldLower
   | RightArmFoldLower
-  | ArmSuctionOnOff;
+  | ArmSuctionOnOff
+  | EmergencyStop
+  | SideArmOpen
+  | SideArmOpenMax
+  | SideArmFold;
 
 export type BoxSize = "A" | "B" | "C" | "D" | "E";
+
+export type EmergencyStop = {
+  command: "emergency_stop";
+};
 
 export type ReceiveSuccess = {
   command: "receive_success";
@@ -84,6 +92,18 @@ export type ArmSuctionOnOff = {
   command: "arm_suction_on_off";
   is_on: boolean;
 }
+
+export type SideArmOpen = {
+  command: "side_arm_open";
+};
+
+export type SideArmOpenMax = {
+  command: "side_arm_open_max";
+};
+
+export type SideArmFold = {
+  command: "side_arm_fold";
+};
 
 export function parse_nrcc2025(chunk: Buffer): Commands | undefined {
   if (chunk.length === 0) {
@@ -209,6 +229,22 @@ export function build_nrcc2025(cmd: Commands): Buffer | undefined {
         is_on_byte = Buffer.from(new Uint8Array([0]).buffer);
       }
       return Buffer.concat([command_byte, is_on_byte]);
+    }
+    case "emergency_stop": {
+      const command_byte = Buffer.from(new Uint8Array([0x0A]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "side_arm_open": {
+      const command_byte = Buffer.from(new Uint8Array([0x31]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "side_arm_open_max": {
+      const command_byte = Buffer.from(new Uint8Array([0x33]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "side_arm_fold": {
+      const command_byte = Buffer.from(new Uint8Array([0x32]).buffer);
+      return Buffer.concat([command_byte]);
     }
   }
 
