@@ -83,6 +83,14 @@ usb.on("attach", async (device) => {
 	parser.on("data", (data) => {
 		const cmd = parse_nrcc2025(data);
 		console.log(cmd);
+		if (!cmd) {
+			return;
+		}
+		if (cmd.command == "pong") {
+			timeCount = 0;
+		} else {
+			broadcast(cmd);
+		}
 	});
 	console.log(`serial port open. baud=${SERIAL_BAUDRATE}`);
 });
@@ -98,6 +106,7 @@ usb.on("detach", (device) => {
 
 wss.on("connection", (ws: WebSocket) => {
 	console.log("A new client connected!");
+	clients.add(ws);
 
 	ws.on("error", console.error);
 
@@ -141,14 +150,14 @@ function sendOrder(data: Commands) {
 
 setInterval(() => {
 	sendOrder({ command: "ping" });
-	if (timeCount > 2) {
-		broadcast({ command: "receive_failed" });
+	if (timeCount >= 1) {
+		broadcast({ command: "connection_failed" });
 	} else {
 		broadcast({
-			command: "receive_success",
+			command: "connection_success",
 		});
 	}
 	timeCount++;
-}, 1000);
+}, 500);
 
 // broadcast({x: , y: , theta: });
