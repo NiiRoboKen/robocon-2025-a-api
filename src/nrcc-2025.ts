@@ -14,9 +14,13 @@ export type Commands =
   | RightArmFoldLower
   | ArmSuctionOnOff
   | EmergencyStop
-  | SideArmOpen
+  | LeftSideArmOpen
+  | RightSideArmOpen
+  | AllSideArmOpen
   | SideArmOpenMax
-  | SideArmFold;
+  | LeftSideArmFold
+  | RightSideArmFold
+  | AllSideArmFold;
 
 export type BoxSize = "A" | "B" | "C" | "D" | "E";
 
@@ -90,16 +94,32 @@ export type ArmSuctionOnOff = {
   is_on: boolean;
 }
 
-export type SideArmOpen = {
-  command: "side_arm_open";
+export type LeftSideArmOpen = {
+  command: "left_side_arm_open";
+};
+
+export type RightSideArmOpen = {
+  command: "right_side_arm_open";
+};
+
+export type AllSideArmOpen = {
+  command: "all_side_arm_open";
 };
 
 export type SideArmOpenMax = {
   command: "side_arm_open_max";
 };
 
-export type SideArmFold = {
-  command: "side_arm_fold";
+export type LeftSideArmFold = {
+  command: "left_side_arm_fold";
+};
+
+export type RightSideArmFold = {
+  command: "right_side_arm_fold";
+};
+
+export type AllSideArmFold = {
+  command: "all_side_arm_fold";
 };
 
 export function parse_nrcc2025(chunk: Buffer): Commands | undefined {
@@ -231,16 +251,32 @@ export function build_nrcc2025(cmd: Commands): Buffer | undefined {
       const command_byte = Buffer.from(new Uint8Array([0x0A]).buffer);
       return Buffer.concat([command_byte]);
     }
-    case "side_arm_open": {
+    case "all_side_arm_open": {
+      const command_byte = Buffer.from(new Uint8Array([0x30]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "right_side_arm_open": {
       const command_byte = Buffer.from(new Uint8Array([0x31]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "left_side_arm_open": {
+      const command_byte = Buffer.from(new Uint8Array([0x32]).buffer);
       return Buffer.concat([command_byte]);
     }
     case "side_arm_open_max": {
       const command_byte = Buffer.from(new Uint8Array([0x33]).buffer);
       return Buffer.concat([command_byte]);
     }
-    case "side_arm_fold": {
-      const command_byte = Buffer.from(new Uint8Array([0x32]).buffer);
+    case "all_side_arm_fold" : {
+      const command_byte = Buffer.from(new Uint8Array([0x34]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "right_side_arm_fold": {
+      const command_byte = Buffer.from(new Uint8Array([0x35]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "left_side_arm_fold": {
+      const command_byte = Buffer.from(new Uint8Array([0x36]).buffer);
       return Buffer.concat([command_byte]);
     }
   }
