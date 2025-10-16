@@ -1,88 +1,154 @@
-import { Transform } from "node:stream";
-import type { TransformOptions, TransformCallback } from "node:stream";
-
 export type Commands =
   | ReceiveSuccess
-  | ReceiveFailed
   | Ping
-  | Pong
-  | SetLocation
+  | ReceiveFailed
+  | EmergencyStop
   | CurrentLocation
-  | ArmStop
-  | LeftArmMove
-  | RightArmMove
-  | LeftArmFoldUpper
-  | RightArmFoldUpper
-  | LeftArmFoldLower
+  | SetLocation
+  | AllSideArmOpen
+  | RightSideArmOpen
+  | LeftSideArmOpen
+  | SideArmOpenMax
+  | AllSideArmFold
+  | RightSideArmFold
+  | LeftSideArmFold
+  | AllArmStop
+  | RightArmStop
+  | LeftArmStop
+  | ArmCeilingDeploy
+  | ArmCollectMode
+  | AllArmFoldUpper
+  | AllArmFoldLower
   | RightArmFoldLower
-  | ArmSuctionOnOff;
+  | LeftArmFoldLower
+  | AllArmStart
+  | RightArmStart
+  | LeftArmStart
+  | AllArmSuctionOnOff
+  | RightArmSuctionOnOff
+  | LeftArmSuctionOnOff;
 
-export type BoxSize = "A" | "B" | "C" | "D" | "E";
 
 export type ReceiveSuccess = {
-  command: "receive_success";
-};
-
-export type ReceiveFailed = {
-  command: "receive_failed";
-  error_code: number;
-};
+  command: "receive_success",
+}
 
 export type Ping = {
-  command: "ping";
-};
+  command: "ping",
+}
 
-export type Pong = {
-  command: "pong";
-};
+export type ReceiveFailed = {
+  command: "receive_failed",
+  error_code: number,
+}
 
-export type SetLocation = {
-  command: "set_location";
-  x: number;
-  y: number;
-  degree: number;
-};
+export type EmergencyStop = {
+  command: "emergency_stop",
+}
 
 export type CurrentLocation = {
-  command: "current_location";
-  x: number;
-  y: number;
-  degree: number;
-};
-
-export type ArmStop = {
-  command: "arm_stop";
-};
-
-export type LeftArmMove = {
-  command: "left_arm_move";
-  box: BoxSize;
+  command: "current_location",
+  x: number,
+  y: number,
+  degree: number
 }
 
-export type RightArmMove = {
-  command: "right_arm_move";
-  box: BoxSize;
+export type SetLocation = {
+  command: "set_location",
+  x: number,
+  y: number,
+  degree: number
 }
 
-export type LeftArmFoldUpper = {
-  command: "left_arm_fold_upper"
+export type AllSideArmOpen = {
+  command: "all_side_arm_open",
 }
 
-export type RightArmFoldUpper = {
-  command: "right_arm_fold_upper"
+export type RightSideArmOpen = {
+  command: "right_side_arm_open",
 }
 
-export type LeftArmFoldLower = {
-  command: "left_arm_fold_lower"
+export type LeftSideArmOpen = {
+  command: "left_side_arm_open",
+}
+
+export type SideArmOpenMax = {
+  command: "side_arm_open_max",
+}
+
+export type AllSideArmFold = {
+  command: "all_side_arm_fold",
+}
+
+export type RightSideArmFold = {
+  command: "right_side_arm_fold",
+}
+
+export type LeftSideArmFold = {
+  command: "left_side_arm_fold",
+}
+
+export type AllArmStop = {
+  command: "all_arm_stop",
+}
+
+export type RightArmStop = {
+  command: "right_arm_stop",
+}
+
+export type LeftArmStop = {
+  command: "left_arm_stop",
+}
+
+export type ArmCeilingDeploy = {
+  command: "arm_ceiling_deploy",
+}
+
+export type ArmCollectMode = {
+  command: "arm_collect_mode",
+}
+
+export type AllArmFoldUpper = {
+  command: "all_arm_fold_upper",
+}
+
+export type AllArmFoldLower = {
+  command: "all_arm_fold_lower",
 }
 
 export type RightArmFoldLower = {
-  command: "right_arm_fold_lower"
+  command: "right_arm_fold_lower",
 }
 
-export type ArmSuctionOnOff = {
-  command: "arm_suction_on_off";
-  is_on: boolean;
+export type LeftArmFoldLower = {
+  command: "left_arm_fold_lower",
+}
+
+export type AllArmStart = {
+  command: "all_arm_start",
+}
+
+export type RightArmStart = {
+  command: "right_arm_start",
+}
+
+export type LeftArmStart = {
+  command: "left_arm_start",
+}
+
+export type AllArmSuctionOnOff = {
+  command: "all_arm_suction_on_off",
+  is_on: boolean,
+}
+
+export type RightArmSuctionOnOff = {
+  command: "right_arm_suction_on_off",
+  is_on: boolean,
+}
+
+export type LeftArmSuctionOnOff = {
+  command: "left_arm_suction_on_off",
+  is_on: boolean,
 }
 
 export function parse_nrcc2025(chunk: Buffer): Commands | undefined {
@@ -91,14 +157,12 @@ export function parse_nrcc2025(chunk: Buffer): Commands | undefined {
   }
   switch (chunk.at(0)) {
     case 0x00:
-      return {command: "receive_success"};
+      return { command: "receive_success" };
     case 0x02:
       if (chunk.length !== 2) {
         return undefined;
       }
-      return {command: "receive_failed", error_code: chunk.at(1)! };
-    case 0x03:
-      return {command: "pong"};
+      return { command: "receive_failed", error_code: chunk.at(1)! };
     case 0x20:
       if (chunk.length !== 13) {
         return undefined;
@@ -115,83 +179,128 @@ export function parse_nrcc2025(chunk: Buffer): Commands | undefined {
 
 export function build_nrcc2025(cmd: Commands): Buffer | undefined {
   switch (cmd.command) {
+    case "receive_success": {
+      const command_byte = Buffer.from(new Uint8Array([0x00]).buffer);
+      return Buffer.concat([command_byte]);
+    }
     case "ping": {
       const command_byte = Buffer.from(new Uint8Array([0x01]).buffer);
       return Buffer.concat([command_byte]);
     }
+    case "receive_failed": {
+      const command_byte = Buffer.from(new Uint8Array([0x02]).buffer);
+      const error_code = Buffer.from(new Uint8Array([cmd.error_code]).buffer);
+      return Buffer.concat([command_byte, error_code]);
+    }
+    case "emergency_stop": {
+      const command_byte = Buffer.from(new Uint8Array([0x0A]).buffer);
+      return Buffer.concat([command_byte]);
+    }
     case "set_location": {
       const command_byte = Buffer.from(new Uint8Array([0x10]).buffer);
-      const x_bytes = Buffer.from(new Int32Array([cmd.x]).buffer);
-      const y_bytes = Buffer.from(new Int32Array([cmd.y]).buffer);
-      const degree_bytes = Buffer.from(new Int32Array([cmd.degree * 100]).buffer);
+      const x_bytes = Buffer.from(new Int32Array(cmd.x).buffer);
+      const y_bytes = Buffer.from(new Int32Array(cmd.y).buffer);
+      const degree_bytes = Buffer.from(new Int32Array(cmd.degree * 100).buffer);
       return Buffer.concat([command_byte, x_bytes, y_bytes, degree_bytes]);
     }
-    case "arm_stop": {
+    case "all_side_arm_open": {
+      const command_byte = Buffer.from(new Uint8Array([0x30]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "right_side_arm_open": {
+      const command_byte = Buffer.from(new Uint8Array([0x31]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "left_side_arm_open": {
+      const command_byte = Buffer.from(new Uint8Array([0x32]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "side_arm_open_max": {
+      const command_byte = Buffer.from(new Uint8Array([0x33]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "all_side_arm_fold": {
+      const command_byte = Buffer.from(new Uint8Array([0x34]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "right_side_arm_fold": {
+      const command_byte = Buffer.from(new Uint8Array([0x35]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "left_side_arm_fold": {
+      const command_byte = Buffer.from(new Uint8Array([0x36]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "all_arm_stop": {
       const command_byte = Buffer.from(new Uint8Array([0x50]).buffer);
       return Buffer.concat([command_byte]);
     }
-    case "right_arm_move": {
+    case "right_arm_stop": {
       const command_byte = Buffer.from(new Uint8Array([0x51]).buffer);
-      let box_number = Buffer.alloc(0);
-      switch (cmd.box) {
-        case "A": {
-          box_number = Buffer.from(new Uint8Array([0]).buffer);
-        }
-        case "B": {
-          box_number = Buffer.from(new Uint8Array([1]).buffer);
-        }
-        case "C": {
-          box_number = Buffer.from(new Uint8Array([2]).buffer);
-        }
-        case "D": {
-          box_number = Buffer.from(new Uint8Array([3]).buffer);
-        }
-        case "E": {
-          box_number = Buffer.from(new Uint8Array([4]).buffer);
-        }
-      }
-      return Buffer.concat([command_byte, box_number]);
-    }
-    case "left_arm_move": {
-      const command_byte = Buffer.from(new Uint8Array([0x52]).buffer);
-      let box_number = Buffer.alloc(0);
-      switch (cmd.box) {
-        case "A": {
-          box_number = Buffer.from(new Uint8Array([0]).buffer);
-        }
-        case "B": {
-          box_number = Buffer.from(new Uint8Array([1]).buffer);
-        }
-        case "C": {
-          box_number = Buffer.from(new Uint8Array([2]).buffer);
-        }
-        case "D": {
-          box_number = Buffer.from(new Uint8Array([3]).buffer);
-        }
-        case "E": {
-          box_number = Buffer.from(new Uint8Array([4]).buffer);
-        }
-      }
-      return Buffer.concat([command_byte, box_number]);
-    }
-    case "right_arm_fold_upper": {
-      const command_byte = Buffer.from(new Uint8Array([0x5A]).buffer);
       return Buffer.concat([command_byte]);
     }
-    case "left_arm_fold_upper": {
-      const command_byte = Buffer.from(new Uint8Array([0x5B]).buffer);
+    case "left_arm_stop": {
+      const command_byte = Buffer.from(new Uint8Array([0x52]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "arm_ceiling_deploy": {
+      const command_byte = Buffer.from(new Uint8Array([0x53]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "arm_collect_mode": {
+      const command_byte = Buffer.from(new Uint8Array([0x54]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "all_arm_fold_upper": {
+      const command_byte = Buffer.from(new Uint8Array([0x55]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "all_arm_fold_lower": {
+      const command_byte = Buffer.from(new Uint8Array([0x56]).buffer);
       return Buffer.concat([command_byte]);
     }
     case "right_arm_fold_lower": {
-      const command_byte = Buffer.from(new Uint8Array([0x5C]).buffer);
+      const command_byte = Buffer.from(new Uint8Array([0x57]).buffer);
       return Buffer.concat([command_byte]);
     }
     case "left_arm_fold_lower": {
-      const command_byte = Buffer.from(new Uint8Array([0x5D]).buffer);
+      const command_byte = Buffer.from(new Uint8Array([0x58]).buffer);
       return Buffer.concat([command_byte]);
     }
-    case "arm_suction_on_off": {
+    case "all_arm_start": {
+      const command_byte = Buffer.from(new Uint8Array([0x5A]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "right_arm_start": {
+      const command_byte = Buffer.from(new Uint8Array([0x5B]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "left_arm_start": {
+      const command_byte = Buffer.from(new Uint8Array([0x5C]).buffer);
+      return Buffer.concat([command_byte]);
+    }
+    case "all_arm_suction_on_off": {
       const command_byte = Buffer.from(new Uint8Array([0x60]).buffer);
+      let is_on_byte = Buffer.alloc(0);
+      if (cmd.is_on) {
+        is_on_byte = Buffer.from(new Uint8Array([1]).buffer);
+      } else {
+        is_on_byte = Buffer.from(new Uint8Array([0]).buffer);
+      }
+      return Buffer.concat([command_byte, is_on_byte]);
+    }
+    case "right_arm_suction_on_off": {
+      const command_byte = Buffer.from(new Uint8Array([0x61]).buffer);
+      let is_on_byte = Buffer.alloc(0);
+      if (cmd.is_on) {
+        is_on_byte = Buffer.from(new Uint8Array([1]).buffer);
+      } else {
+        is_on_byte = Buffer.from(new Uint8Array([0]).buffer);
+      }
+      return Buffer.concat([command_byte, is_on_byte]);
+    }
+    case "left_arm_suction_on_off": {
+      const command_byte = Buffer.from(new Uint8Array([0x62]).buffer);
       let is_on_byte = Buffer.alloc(0);
       if (cmd.is_on) {
         is_on_byte = Buffer.from(new Uint8Array([1]).buffer);
