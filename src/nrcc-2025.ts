@@ -2,6 +2,7 @@ export type Commands =
   | ReceiveSuccess
   | Ping
   | ReceiveFailed
+  | Pong
   | EmergencyStop
   | CurrentLocation
   | SetLocation
@@ -40,6 +41,10 @@ export type Ping = {
 export type ReceiveFailed = {
   command: "receive_failed",
   error_code: number,
+}
+
+export type Pong = {
+  command: "pong",
 }
 
 export type EmergencyStop = {
@@ -163,6 +168,8 @@ export function parse_nrcc2025(chunk: Buffer): Commands | undefined {
         return undefined;
       }
       return { command: "receive_failed", error_code: chunk.at(1)! };
+    case 0x03:
+      return { command: "pong" };
     case 0x20:
       if (chunk.length !== 13) {
         return undefined;
@@ -198,9 +205,9 @@ export function build_nrcc2025(cmd: Commands): Buffer | undefined {
     }
     case "set_location": {
       const command_byte = Buffer.from(new Uint8Array([0x10]).buffer);
-      const x_bytes = Buffer.from(new Int32Array(cmd.x).buffer);
-      const y_bytes = Buffer.from(new Int32Array(cmd.y).buffer);
-      const degree_bytes = Buffer.from(new Int32Array(cmd.degree * 100).buffer);
+      const x_bytes = Buffer.from(new Int32Array([cmd.x]).buffer);
+      const y_bytes = Buffer.from(new Int32Array([cmd.y]).buffer);
+      const degree_bytes = Buffer.from(new Int32Array([cmd.degree * 100]).buffer);
       return Buffer.concat([command_byte, x_bytes, y_bytes, degree_bytes]);
     }
     case "all_side_arm_open": {
