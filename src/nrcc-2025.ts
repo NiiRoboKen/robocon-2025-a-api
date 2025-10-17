@@ -2,6 +2,7 @@ export type Commands =
   | ReceiveSuccess
   | Ping
   | ReceiveFailed
+  | Pong
   | EmergencyStop
   | CurrentLocation
   | SetLocation
@@ -40,6 +41,10 @@ export type Ping = {
 export type ReceiveFailed = {
   command: "receive_failed",
   error_code: number,
+}
+
+export type Pong = {
+  command: "pong",
 }
 
 export type EmergencyStop = {
@@ -163,6 +168,8 @@ export function parse_nrcc2025(chunk: Buffer): Commands | undefined {
         return undefined;
       }
       return { command: "receive_failed", error_code: chunk.at(1)! };
+    case 0x03:
+      return { command: "pong" };
     case 0x20:
       if (chunk.length !== 13) {
         return undefined;
